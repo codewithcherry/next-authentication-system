@@ -4,9 +4,9 @@ import {signIn,signOut} from '@/auth'
 
 export const googleSignIn=async()=>{
     console.log("signin with google clicked")
-    return await signIn('google')
+    return await signIn('google',{redirectTo:'/'})
 }
 
-export const SignOut=async()=>{
-    return await signOut();
+export const logOut=async()=>{
+    return await signOut({redirectTo:'/'});
 }
