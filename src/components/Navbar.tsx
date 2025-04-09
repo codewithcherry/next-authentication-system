@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import LogoutButton from './LogoutButton';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -17,11 +18,12 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-6">
+          <div className="hidden md:flex space-x-6 items-center">
             <Link href="/" className="text-gray-700 hover:text-blue-600 transition">Home</Link>
             <Link href="/user" className="text-gray-700 hover:text-blue-600 transition">User</Link>
             <Link href="/login" className="text-gray-700 hover:text-blue-600 transition">Login</Link>
             <Link href="/register" className="text-gray-700 hover:text-blue-600 transition">Signup</Link>
+            <LogoutButton />
           </div>
 
           {/* Mobile Menu Button */}
