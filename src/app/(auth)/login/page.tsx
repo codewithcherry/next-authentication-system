@@ -1,18 +1,14 @@
 'use client';
 import React from 'react'
-import { googleSignIn } from '@/Oauth/actions/auth'
+import { LoginForm } from '@/components/LoginForm';
 
 const page :React.FC = ()  => {
   return (
-    <div>
-      <h1>
-        Login Page
-      </h1>
-
-      <div className='mx-auto w-full'>
-        <button className='text-black p-2 rounded-md shadow-md  bg-slate-200 hover:bg-slate-300 hover:cursor-pointer' onClick={()=>googleSignIn()}>Signin with Google</button>
-      </div>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="w-full max-w-sm">
+      <LoginForm />
     </div>
+  </div>
   )
 }
 
