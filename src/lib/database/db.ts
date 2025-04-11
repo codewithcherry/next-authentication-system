@@ -1,7 +1,7 @@
 // lib/mongoose.ts
 import mongoose, { ConnectOptions } from 'mongoose';
 
-const MONGO_URI = process.env.MONGO_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 const connect = async (): Promise<void> => {
   if (mongoose.connection.readyState > 0) {
@@ -17,7 +17,7 @@ const connect = async (): Promise<void> => {
       socketTimeoutMS: 45000,
     };
 
-    const connection = await mongoose.connect(MONGO_URI, options);
+    const connection = await mongoose.connect(MONGODB_URI, options);
     console.log(`MongoDB connected: ${connection.connection.host}`);
   } catch (error: any) {
     if (error.name === 'MongoNetworkError') {

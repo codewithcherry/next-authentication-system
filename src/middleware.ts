@@ -1,20 +1,24 @@
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
-import { auth } from "@/auth";
+// import { NextResponse } from "next/server";
+// import { NextRequest } from "next/server";
+// import { auth } from "@/auth/auth";
 
-const protectedRoutes = ["/user"];
+// const protectedRoutes = ["/user"];
 
-export const middleware = async (request: NextRequest) => {
-    const session = await auth();
-    const { pathname } = request.nextUrl;
+// export const middleware = async (request: NextRequest) => {
+//     const session = await auth();
+//     const { pathname } = request.nextUrl;
 
-    console.log("middleware entered");
+//     console.log("middleware entered");
 
-    const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+//     const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
 
-    if (isProtected && !session) {
-        return NextResponse.redirect(new URL("/login", request.url));
-    }
+//     if (isProtected && !session) {
+//         return NextResponse.redirect(new URL("/login", request.url));
+//     }
 
-    return NextResponse.next();
-};
+//     return NextResponse.next();
+// };
+
+export { auth as middleware } from "./auth/auth";
+
+

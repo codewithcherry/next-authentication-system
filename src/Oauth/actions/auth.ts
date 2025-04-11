@@ -1,6 +1,6 @@
 'use server';
 
-import {signIn,signOut} from '@/auth'
+import { signIn,signOut } from "@/auth/auth";
 
 export const googleSignIn=async()=>{
     console.log("signin with google clicked")

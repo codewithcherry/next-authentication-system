@@ -1,2 +1,4 @@
-import { handlers } from "@/auth" // Referring to the auth.ts we just created
-export const { GET, POST } = handlers
+import { handlers } from "@/auth/auth";
+
+export const { GET, POST } = handlers;
+export const runtime = "edge"; // Explicitly opt into Edge Runtime
