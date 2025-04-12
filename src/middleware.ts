@@ -1,24 +1,4 @@
-// import { NextResponse } from "next/server";
-// import { NextRequest } from "next/server";
-// import { auth } from "@/auth/auth";
-
-// const protectedRoutes = ["/user"];
-
-// export const middleware = async (request: NextRequest) => {
-//     const session = await auth();
-//     const { pathname } = request.nextUrl;
-
-//     console.log("middleware entered");
-
-//     const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
-
-//     if (isProtected && !session) {
-//         return NextResponse.redirect(new URL("/login", request.url));
-//     }
-
-//     return NextResponse.next();
-// };
-
-export { auth as middleware } from "./auth/auth";
-
-
+import NextAuth from "next-auth"
+import authConfig from "@/auth/auth.config"
+ 
+export const { auth: middleware } = NextAuth(authConfig)

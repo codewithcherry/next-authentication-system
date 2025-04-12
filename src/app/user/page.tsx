@@ -1,14 +1,21 @@
 "use server";
 
 import React from "react";
-import Image from "next/image";
-import { auth } from "@/auth";
-import LogoutButton from "@/components/LogoutButton";
+import { auth } from "@/auth/auth";
 import UserCard from "@/components/UserCard";
+import Link from "next/link";
 
 const UserPage: React.FC = async () => {
   const session:any = await auth();
+
   console.log(session.user)
+
+  if(!session){
+    return <div>
+       <h1>User not authenticated</h1>
+       <Link href={'/login'}>Goto Login</Link>
+    </div>
+  }
 
   return (
     <div className="w-full mx-auto p-6">
