@@ -23,7 +23,7 @@ const UserPage: React.FC = async () => {
         <h1 className="text-center text-slate-800 font-medium text-3xl">User Details</h1>
       </div>
       <div>
-        <UserCard name={session.user?.name||"user name"} email={session.user?.email || "example@mail.com"} imageUrl={session.user?.image}/>
+        <UserCard name={session.user?.name||"user name"} email={session.user?.email || "example@mail.com"} imageUrl={session.user?.image} role={session.user?.role} id={session.user?.id}/>
       </div>
       
     </div>
