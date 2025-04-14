@@ -10,11 +10,6 @@ import client from "@/lib/db"
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: {
     ...MongoDBAdapter(client),
-    // Custom adapter methods to handle user linking
-    async getUserByEmail(email) {
-      const user = await client.db().collection("users").findOne({ email })
-      return user
-    },
   },
   session: { strategy: "jwt" },
   pages: {

@@ -1,16 +1,26 @@
-// In your next-auth.d.ts or similar
-import NextAuth from "next-auth";
+import "next-auth"
 
 declare module "next-auth" {
   interface User {
-    id: string;
-    role?: string;
+    id: string
+    role?: string
+    provider?: string
+    providerAccountId?: string
   }
   
   interface Session {
     user: {
-      id: string;
-      role: string;
-    } & DefaultSession["user"];
+      id: string
+      role: string
+    } & DefaultSession["user"]
+  }
+}
+
+declare module "@auth/core/adapters" {
+  interface AdapterUser {
+    id: string
+    role?: string
+    provider?: string
+    providerAccountId?: string
   }
 }
