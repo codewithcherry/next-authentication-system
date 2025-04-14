@@ -8,33 +8,60 @@ import client from "@/lib/db"
 
  
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(client),
+  adapter: {
+    ...MongoDBAdapter(client),
+    // Custom adapter methods to handle user linking
+    async getUserByEmail(email) {
+      const user = await client.db().collection("users").findOne({ email })
+      return user
+    },
+  },
   session: { strategy: "jwt" },
+  pages: {
+    signIn: '/login', // Custom error page to show the OAuthAccountNotLinked error
+  },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
-      // Only add id and role to token if user is available (during sign-in)
-      if (user) {
-        token.id = user.id;
-        // For OAuth providers like Google, you might want to set a default role
-        token.role = user.role || "user";
+    async signIn({ user, account, profile }) {
+      // Check if this is an OAuth login
+      if (account.provider !== "credentials") {
+        // Check if user already exists in your DB
+        const existingUser = await client.db()
+          .collection("users")
+          .findOne({ email: user.email })
+
+        if (existingUser) {
+          // Link accounts by updating the existing user
+          await client.db()
+            .collection("users")
+            .updateOne(
+              { email: user.email },
+              { $set: { 
+                provider: account.provider,
+                providerAccountId: account.providerAccountId 
+              }}
+            )
+          
+          // Update the user object that will be used in the session
+          user.id = existingUser._id.toString()
+          user.role = existingUser.role || "user"
+          return true
+        }
       }
-      return token;
+      return true // Proceed with normal flow for new users
+    },
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        token.id = user.id
+        token.role = user.role || "user"
+      }
+      return token
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.id = token.id as string
+        session.user.role = token.role as string
       }
-      return session;
-    },
-    async signIn({ user, account, profile }) {
-      // This is where you can handle first-time sign-in for OAuth users
-      if (account?.provider === "google") {
-        // You might want to set default role for Google users here
-        // Or fetch additional user data from your database
-        user.role = "user"; // Default role for Google users
-      }
-      return true;
+      return session
     }
   },
   ...authConfig,
