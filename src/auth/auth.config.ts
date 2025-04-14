@@ -1,44 +1,80 @@
-
 import type { NextAuthConfig } from "next-auth"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
- 
-// Notice this is only an object, not a full Auth.js instance
+import bcrypt from "bcryptjs"
+import client from "@/lib/db"
+
 export default {
   providers: [
     Google,
     Credentials({
-      // You can specify which fields should be submitted, by adding keys to the `credentials` object.
-      // e.g. domain, username, password, 2FA token, etc.
       credentials: {
-        email: {},
-        password: {},
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
         try {
-          let user = null
- 
-          const { email, password } = await signInSchema.parseAsync(credentials)
- 
-          // logic to salt and hash password
-          const pwHash = saltAndHashPassword(password)
- 
-          // logic to verify if the user exists
-          user = await getUserFromDb(email, pwHash)
- 
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Email and password are required")
+          }
+
+          const db = client.db()
+          const user = await db.collection("users").findOne({ 
+            email: credentials.email.toLowerCase()
+          })
+
+          // If user exists and has password (credentials user)
+          if (user && user.password) {
+            const isValid = await bcrypt.compare(
+              credentials.password as string,
+              user.password
+            )
+            
+            if (!isValid) {
+              throw new Error("Invalid password")
+            }
+
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              name: user.name,
+              role: user.role || "user"
+            }
+          }
+
+          // If user doesn't exist, create a new one
           if (!user) {
-            throw new Error("Invalid credentials.")
+            const hashedPassword = await bcrypt.hash(
+              credentials.password as string, 
+              10
+            )
+            
+            const result = await db.collection("users").insertOne({
+              email: credentials.email.toLowerCase(),
+              password: hashedPassword,
+              name: credentials.email.split("@")[0], // Default name
+              role: "user",
+              provider: "credentials",
+              createdAt: new Date(),
+              updatedAt: new Date()
+            })
+
+            return {
+              id: result.insertedId.toString(),
+              email: credentials.email,
+              name: credentials.email.split("@")[0],
+              role: "user"
+            }
           }
- 
-          // return JSON object with the user data
-          return user
+
+          // If user exists but doesn't have password (OAuth user)
+          throw new Error("Account already exists with a different provider. Please sign in with that provider.")
+          
         } catch (error) {
-          if (error instanceof ZodError) {
-            // Return `null` to indicate that the credentials are invalid
-            return null
-          }
+          console.error("Authentication error:", error)
+          return null
         }
       },
-    }),],
-
+    }),
+  ],
 } satisfies NextAuthConfig
