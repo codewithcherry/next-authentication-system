@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { googleSignIn } from "@/Oauth/actions/auth";
 import {  useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter,useSearchParams } from "next/navigation";
 import { signIn,useSession } from "next-auth/react";
 
 export function LoginForm({
@@ -30,6 +30,10 @@ export function LoginForm({
 
   const {data:session,update}=useSession();
 
+  const searchParams = useSearchParams()
+ 
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
+
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +48,7 @@ export function LoginForm({
         email,
         password,
         redirect: false, // prevent automatic redirect
+        callbackUrl
       });
   
       if (result?.error) {
@@ -58,7 +63,7 @@ export function LoginForm({
         // Optional: force session update before redirect (in case Navbar reads it immediately)
         await update?.();
   
-        router.push("/");
+        router.push(callbackUrl);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
