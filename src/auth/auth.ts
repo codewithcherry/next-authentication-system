@@ -24,31 +24,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!credentials?.email || !credentials?.password) {
             throw new Error("Email and password are required");
           }
-    
+
           const email = credentials.email.toLowerCase();
           const password = credentials.password as string;
-    
+
           const db = client.db();
-          const user = await db.collection("users").findOne({ 
+          const user = await db.collection("users").findOne({
             email: email
           });
-    
+
           // If user doesn't exist, return null
           if (!user) {
             throw new Error("No user found with this email");
           }
-    
+
           // If user exists but doesn't have a password (maybe signed up with another provider)
           if (!user.password) {
             throw new Error("Account exists with a different provider. Please sign in with that provider.");
           }
-    
+
           // Verify password
           const isValid = await bcrypt.compare(password, user.password);
           if (!isValid) {
             throw new Error("Invalid password");
           }
-    
+
           // Return user data if everything is valid
           return {
             id: user._id.toString(),
@@ -56,7 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name,
             role: user.role || "user"
           };
-              
+
         } catch (error) {
           console.error("Authentication error:", error);
           return null;
@@ -69,7 +69,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn({ user, account, profile }) {
       if (account?.provider !== "credentials") {
         if (!user.email) return false // Additional type safety
-        
+
         const existingUser = await client.db()
           .collection("users")
           .findOne({ email: user.email.toLowerCase() }) // Fixed here too
@@ -79,12 +79,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .collection("users")
             .updateOne(
               { email: user.email.toLowerCase() }, // Fixed here
-              { $set: { 
-                provider: account.provider,
-                providerAccountId: account.providerAccountId 
-              }}
+              {
+                $set: {
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId
+                }
+              }
             )
-          
+
           user.id = existingUser._id.toString()
           user.role = existingUser.role || "user"
           return true

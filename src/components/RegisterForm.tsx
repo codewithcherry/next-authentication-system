@@ -15,6 +15,7 @@ import { googleSignIn ,CredentialsSignIn} from "@/Oauth/actions/auth";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export function RegisterForm({
   className,
@@ -36,10 +37,14 @@ export function RegisterForm({
     console.log("Registering with:", { email, password });
     try {
       setRegisterLoading(true);
-      await CredentialsSignIn({email,password});
+      const response=await axios.post("/api/register",{email,password},
+        {headers:{
+          "Content-Type":'application/json'
+        }}
+      )
       setEmail('');
       setPassword('');
-      router.push("/");
+      console.log(response.data);
     } catch (error) {
       console.log(error);
     }
