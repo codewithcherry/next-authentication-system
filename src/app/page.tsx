@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import Link from "next/link";
 import { useEffect } from "react";
 
 export default function Home() {
@@ -15,8 +14,8 @@ export default function Home() {
   return (
     <>
       <div>
-        <h1>Welcome to the home page</h1>
-        <Link href={'/user'}>Goto User</Link>
+        <h1 className="text-center text-3xl text-slate-800 my-10">Welcome to the home page</h1>
+        
       </div>
     </>
   );
