@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { SessionProvider } from "next-auth/react";
 
 
 export const metadata: Metadata = {
@@ -15,11 +16,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="bg-white text-slate-800"
-      >
-        <Navbar />
-        {children}
+      <body className="bg-white text-slate-800">
+        <SessionProvider
+        
+        refetchInterval={5 * 60} // 5 minutes
+        refetchOnWindowFocus={true}>
+          <Navbar />
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

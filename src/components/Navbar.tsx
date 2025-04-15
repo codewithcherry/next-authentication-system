@@ -1,12 +1,26 @@
 'use client';
 
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import LogoutButton from './LogoutButton';
+import { useSession } from 'next-auth/react';
 
 const Navbar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const [isLoggedIn,SetIsLoggedIn]=useState(false);
+
+  
+  useEffect(()=>{
+    console.log("current session from nav",session);
+    if(session){
+      SetIsLoggedIn(true);
+    }
+    else{
+      SetIsLoggedIn(false);
+    }
+  },[session,status])
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -20,10 +34,17 @@ const Navbar: React.FC = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center">
             <Link href="/" className="text-gray-700 hover:text-blue-600 transition">Home</Link>
-            <Link href="/user" className="text-gray-700 hover:text-blue-600 transition">User</Link>
-            <Link href="/login" className="text-gray-700 hover:text-blue-600 transition">Login</Link>
-            <Link href="/register" className="text-gray-700 hover:text-blue-600 transition">Signup</Link>
-            <LogoutButton />
+            {isLoggedIn ? (
+              <>
+                <Link href="/user" className="text-gray-700 hover:text-blue-600 transition">User</Link>
+                <LogoutButton />
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-gray-700 hover:text-blue-600 transition">Login</Link>
+                <Link href="/register" className="text-gray-700 hover:text-blue-600 transition">Signup</Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -39,13 +60,21 @@ const Navbar: React.FC = () => {
       {isOpen && (
         <div className="md:hidden px-4 pb-4 space-y-2">
           <Link href="/" className="block text-gray-700 hover:text-blue-600 transition">Home</Link>
-          <Link href="/user" className="block text-gray-700 hover:text-blue-600 transition">User</Link>
-          <Link href="/login" className="block text-gray-700 hover:text-blue-600 transition">Login</Link>
-          <Link href="/register" className="block text-gray-700 hover:text-blue-600 transition">Signup</Link>
+          {isLoggedIn ? (
+            <>
+              <Link href="/user" className="block text-gray-700 hover:text-blue-600 transition">User</Link>
+              <LogoutButton />
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="block text-gray-700 hover:text-blue-600 transition">Login</Link>
+              <Link href="/register" className="block text-gray-700 hover:text-blue-600 transition">Signup</Link>
+            </>
+          )}
         </div>
       )}
     </nav>
   )
 }
 
-export default Navbar
+export default Navbar;

@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CredentialsSignIn, googleSignIn } from "@/Oauth/actions/auth";
-import { useState } from "react";
+import { googleSignIn } from "@/Oauth/actions/auth";
+import {  useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signIn,useSession } from "next-auth/react";
 
 export function LoginForm({
   className,
@@ -24,19 +26,40 @@ export function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const router=useRouter();
+
+  const {data:session,update}=useSession();
+
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
+  
     try {
-      
       console.log("Signing in with:", { email, password });
-      
-      await CredentialsSignIn({email,password});
-      setEmail("")
-      setPassword("")
+  
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false, // prevent automatic redirect
+      });
+  
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+  
+      if (result?.ok) {
+        setEmail("");
+        setPassword("");
+  
+        // Optional: force session update before redirect (in case Navbar reads it immediately)
+        await update?.();
+  
+        router.push("/");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {

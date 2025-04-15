@@ -25,7 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             throw new Error("Email and password are required");
           }
 
-          const email = credentials.email.toLowerCase();
+          const email = credentials.email;
           const password = credentials.password as string;
 
           const db = client.db();
@@ -75,18 +75,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .findOne({ email: user.email.toLowerCase() }) // Fixed here too
 
         if (existingUser) {
-          await client.db()
-            .collection("users")
-            .updateOne(
-              { email: user.email.toLowerCase() }, // Fixed here
-              {
-                $set: {
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId
-                }
-              }
-            )
-
           user.id = existingUser._id.toString()
           user.role = existingUser.role || "user"
           return true
