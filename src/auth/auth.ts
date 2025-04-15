@@ -1,48 +1,96 @@
 import NextAuth from "next-auth"
 import authConfig from "../auth/auth.config"
- 
 import { MongoDBAdapter } from "@auth/mongodb-adapter"
-
 import client from "@/lib/db"
- 
+import bcrypt from "bcryptjs"
+import Credentials from "next-auth/providers/credentials"
 
- 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: {
     ...MongoDBAdapter(client),
   },
   session: { strategy: "jwt" },
   pages: {
-    signIn: '/login', // Custom error page to show the OAuthAccountNotLinked error
+    signIn: '/login',
   },
+  providers: [
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Email and password are required");
+          }
+    
+          const email = credentials.email.toLowerCase();
+          const password = credentials.password as string;
+    
+          const db = client.db();
+          const user = await db.collection("users").findOne({ 
+            email: email
+          });
+    
+          // If user doesn't exist, return null
+          if (!user) {
+            throw new Error("No user found with this email");
+          }
+    
+          // If user exists but doesn't have a password (maybe signed up with another provider)
+          if (!user.password) {
+            throw new Error("Account exists with a different provider. Please sign in with that provider.");
+          }
+    
+          // Verify password
+          const isValid = await bcrypt.compare(password, user.password);
+          if (!isValid) {
+            throw new Error("Invalid password");
+          }
+    
+          // Return user data if everything is valid
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role || "user"
+          };
+              
+        } catch (error) {
+          console.error("Authentication error:", error);
+          return null;
+        }
+      },
+    }),
+    ...authConfig.providers,
+  ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Check if this is an OAuth login
-      if (account.provider !== "credentials") {
-        // Check if user already exists in your DB
+      if (account?.provider !== "credentials") {
+        if (!user.email) return false // Additional type safety
+        
         const existingUser = await client.db()
           .collection("users")
-          .findOne({ email: user.email })
+          .findOne({ email: user.email.toLowerCase() }) // Fixed here too
 
         if (existingUser) {
-          // Link accounts by updating the existing user
           await client.db()
             .collection("users")
             .updateOne(
-              { email: user.email },
+              { email: user.email.toLowerCase() }, // Fixed here
               { $set: { 
                 provider: account.provider,
                 providerAccountId: account.providerAccountId 
               }}
             )
           
-          // Update the user object that will be used in the session
           user.id = existingUser._id.toString()
           user.role = existingUser.role || "user"
           return true
         }
       }
-      return true // Proceed with normal flow for new users
+      return true
     },
     async jwt({ token, user, account, profile }) {
       if (user) {
@@ -59,5 +107,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     }
   },
-  ...authConfig,
 })
