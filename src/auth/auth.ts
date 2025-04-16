@@ -5,6 +5,15 @@ import client from "@/lib/db"
 import bcrypt from "bcryptjs"
 import Credentials from "next-auth/providers/credentials"
 
+interface User {
+  id: string
+  name:string
+  email:string
+  role?: string
+  provider?: string
+  providerAccountId?: string
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: {
     ...MongoDBAdapter(client),
@@ -87,9 +96,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // The user object should already contain id and role from your authorize callback
       // But let's ensure it's properly set
       if (!user.id) {
+        const userEmail:string=user?.email as string
         const dbUser = await client.db()
           .collection("users")
-          .findOne({ email: user.email.toLowerCase() });
+          .findOne({ email: userEmail.toLowerCase()});
         
         if (dbUser) {
           user.id = dbUser._id.toString();
