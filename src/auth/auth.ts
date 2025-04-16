@@ -68,20 +68,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      // For OAuth providers (Google, GitHub, etc.)
       if (account?.provider !== "credentials") {
-        if (!user.email) return false // Additional type safety
-
+        if (!user.email) return false;
+    
         const existingUser = await client.db()
           .collection("users")
-          .findOne({ email: user.email.toLowerCase() }) // Fixed here too
-
+          .findOne({ email: user.email.toLowerCase() });
+    
         if (existingUser) {
-          user.id = existingUser._id.toString()
-          user.role = existingUser.role || "user"
-          return true
+          user.id = existingUser._id.toString();
+          user.role = existingUser.role || "user";
+        }
+        return true;
+      }
+      
+      // For credential-based logins (email/password)
+      // The user object should already contain id and role from your authorize callback
+      // But let's ensure it's properly set
+      if (!user.id) {
+        const dbUser = await client.db()
+          .collection("users")
+          .findOne({ email: user.email.toLowerCase() });
+        
+        if (dbUser) {
+          user.id = dbUser._id.toString();
+          user.role = dbUser.role || "user";
         }
       }
-      return true
+      
+      return true;
     },
     async jwt({ token, user, account, profile }) {
       if (user) {
